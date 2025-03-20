@@ -34,10 +34,10 @@ const renderPokemon = async (pokemon) => {
         const defaultSprite = data.sprites.other['official-artwork'].front_default;
     
         // Usa o sprite animado se existir, caso contrário, usa a imagem normal (649 ou superior)
-        // pokemonImage.src = animatedSprite || defaultSprite;
+        pokemonImage.src = animatedSprite || defaultSprite;
     
         // Código que usa imagens para todos utilizando o Pokemon Home 
-        pokemonImage.src = data.sprites.other['official-artwork'].front_default;
+        // pokemonImage.src = data.sprites.other['official-artwork'].front_default;
 
         // Utiliza sprint animados para todos até o 721, porém alguns sprints podem não estar funcionando, pois a seção ainda esta em construção e o pkparaiso não é uma API
         // pokemonImage.src = `https://www.pkparaiso.com/imagenes/xy/sprites/animados/${data.name}.gif`;
@@ -72,3 +72,7 @@ buttonNext.addEventListener('click', () => {
 });
 
 renderPokemon(searchPokemon);
+
+document.querySelector('.btn-new-pokedex').addEventListener('click', () => {
+  window.location.href = 'pokedex_nova.html';  // Isso levaria para a nova página
+});
