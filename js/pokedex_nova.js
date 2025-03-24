@@ -1,6 +1,7 @@
-const fetchGenerationOnePokemons = async () => {
+// Função para buscar os Pokémons de uma geração específica
+const fetchPokemonsByGeneration = async (generation) => {
     try {
-        const response = await fetch('https://pokeapi.co/api/v2/generation/1/');
+        const response = await fetch(`https://pokeapi.co/api/v2/generation/${generation}/`);
         const data = await response.json();
         const pokemons = data.pokemon_species;
 
@@ -9,6 +10,32 @@ const fetchGenerationOnePokemons = async () => {
         console.error('Erro ao buscar os Pokémons:', error);
     }
 };
+// Evento de clique nos botões de geração
+const generationButtons = document.querySelectorAll('.generation-button');
+generationButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+        const generation = event.target.getAttribute('data-generation');
+        fetchPokemonsByGeneration(generation);
+        document.querySelector('h1').textContent = `Pokédex da ${generation}ª Geração`;
+    });
+});
+
+// Filtro de pesquisa de Pokémon
+document.getElementById('searchBar').addEventListener('input', function () {
+    let filter = this.value.toLowerCase();
+    let pokemonItems = document.querySelectorAll('.pokemon-item');
+
+    pokemonItems.forEach(item => {
+        let name = item.querySelector('.pokemon-name').textContent.toLowerCase();
+        let id = item.querySelector('.pokemon-id').textContent.replace('#', '');
+
+        if (name.includes(filter) || id.includes(filter)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
 
 // Cores dos tipos
 const getTypeColor = (type) => {
@@ -81,20 +108,22 @@ const renderPokemonList = async (pokemons) => {
             const translatedTypes = types.map(type => translateType(type)).join(', ');
 
             const pokemonId = pokemonData.id;
+
+            // Pegando a imagem padrão
             const pokemonImageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
 
-            const pokemonName = pokemonData.name.charAt(0).toUpperCase() + pokemonData.name.slice(1);
+            // Pegando o GIF animado se existir, caso contrário, será undefined
+            const pokemonGifUrl = pokemonData.sprites.versions['generation-v']['black-white'].animated.front_default;
 
             return {
-                name: pokemonName,
+                name: pokemonData.name,
                 imageUrl: pokemonImageUrl,
+                gifUrl: pokemonGifUrl || null, // Armazenamos null caso não exista um GIF
                 id: pokemonId,
                 types: translatedTypes,
                 backgroundColor: backgroundColor,
                 weight: pokemonData.weight / 10, // Convertendo para kg
                 height: pokemonData.height / 10, // Convertendo para metros
-                animatedSprite: pokemonData.sprites.versions['generation-v']['black-white'].animated.front_default,
-                defaultSprite: pokemonImageUrl
             };
         } catch (error) {
             console.error(`Erro ao buscar os dados do Pokémon ${pokemon.name}:`, error);
@@ -113,46 +142,72 @@ const renderPokemonList = async (pokemons) => {
         pokemonItem.style.backgroundColor = pokemon.backgroundColor;
         pokemonItem.style.display = "flex";  // Garante que o card siga o layout flexível
         pokemonItem.style.flexDirection = "column"; // Mantém a estrutura interna
-    
+
         pokemonItem.innerHTML = `
+            <p class="pokemon-id">#${pokemon.id}</p>
             <img src="${pokemon.imageUrl}" alt="${pokemon.name}" class="pokemon-image">
             <h3 class="pokemon-name">${pokemon.name}</h3>
             <p class="pokemon-types">Tipo(s): ${pokemon.types}</p>
         `;
-    
+
         pokemonItem.addEventListener('click', () => openModal(pokemon));
-    
+
         container.appendChild(pokemonItem);
     });
-    
 };
 
 // Função para abrir o modal
 const openModal = (pokemon) => {
     const modal = document.createElement('div');
+    modal.style.setProperty('--type-color', pokemon.backgroundColor);
     modal.classList.add('pokemon-modal');
 
     modal.innerHTML = `
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2>${pokemon.name}</h2>
-            <img src="${pokemon.animatedSprite || pokemon.defaultSprite}" alt="${pokemon.name}" class="pokemon-gif">
-            <p><strong>Tipo(s):</strong> ${pokemon.types}</p>
-            <p><strong>Peso:</strong> ${pokemon.weight} kg</p>
-            <p><strong>Altura:</strong> ${pokemon.height} m</p>
+            <!-- Se tiver o GIF, ele será exibido, senão, exibe a imagem padrão -->
+            <img src="${pokemon.gifUrl || pokemon.imageUrl}" alt="${pokemon.name}" class="pokemon-gif">
+            <h3 class="pokemon-name">• ${pokemon.name} •</h3>
+            <div class="pokemon-stats">
+                <div class="stat">
+                    <img src='./img/height.svg'>
+                    <p class="stat-label">Altura</p>
+                    <p class="stat-value">${pokemon.height} M</p>
+                </div>
+                <div class="stat">
+                    <img src='./img/weight.svg'>
+                    <p class="stat-label">Peso</p>
+                    <p class="stat-value">${pokemon.weight} KG</p>
+                </div>
+                <div class="stat">
+                    <p class="stat-label">Tipo</p>
+                    <p class="stat-value">${pokemon.types}</p>
+                </div>
+            </div>
         </div>
     `;
 
     document.body.appendChild(modal);
 
-    // Fechar o modal ao clicar no "X" ou fora dele
-    modal.querySelector('.close-modal').addEventListener('click', () => modal.remove());
+    modal.querySelector('.close-modal').addEventListener('click', () => closeModal(modal));
     modal.addEventListener('click', (event) => {
-        if (event.target === modal) modal.remove();
+        if (event.target === modal) closeModal(modal);
     });
+
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
 };
 
-// CSS para o modal
+// Função para fechar o modal com animação
+const closeModal = (modal) => {
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.remove();
+    }, 300);
+};
+
+// CSS atualizado para o modal
 const style = document.createElement('style');
 style.innerHTML = `
     .pokemon-modal {
@@ -161,20 +216,56 @@ style.innerHTML = `
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.7);
+        background: rgba(0, 0, 0, 0.8);
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
     .modal-content {
-        background: white;
+        background-color: var(--type-color);
         padding: 20px;
-        border-radius: 10px;
+        border-radius: 15px;
         text-align: center;
         position: relative;
         max-width: 400px;
         width: 90%;
+        border: 3px solid var(--type-color);
+        color: #fff;
+        box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .pokemon-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #fff;
+        text-transform: uppercase;
+        margin: 10px 0;
+    }
+
+    .pokemon-gif {
+        width: 150px;
+        height: 150px;
+    }
+
+    .pokemon-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 15px;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #aaa;
     }
 
     .close-modal {
@@ -182,15 +273,16 @@ style.innerHTML = `
         top: 10px;
         right: 15px;
         font-size: 24px;
+        font-weight: bold;
+        color: #bbb;
         cursor: pointer;
     }
 
-    .pokemon-gif {
-        width: 120px;
-        height: 120px;
+    .close-modal:hover {
+        color: var(--type-color);
     }
 `;
 document.head.appendChild(style);
 
-// Espera o DOM carregar e então executa a função
-document.addEventListener('DOMContentLoaded', fetchGenerationOnePokemons);
+// Inicializa com a Geração 1
+document.addEventListener('DOMContentLoaded', () => fetchPokemonsByGeneration(1));
