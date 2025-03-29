@@ -150,54 +150,56 @@ const renderPokemonList = async (pokemons) => {
             <p class="pokemon-types">Tipo(s): ${pokemon.types}</p>
         `;
 
-        pokemonItem.addEventListener('click', () => openModal(pokemon));
+        pokemonItem.addEventListener("click", async () => {
+            window.location.href = `./detalhes_pokemon.html?id=${pokemon.id}`;
+        });
 
         container.appendChild(pokemonItem);
     });
 };
 
 // Função para abrir o modal
-const openModal = (pokemon) => {
-    const modal = document.createElement('div');
-    modal.style.setProperty('--type-color', pokemon.backgroundColor);
-    modal.classList.add('pokemon-modal');
+// const openModal = (pokemon) => {
+//     const modal = document.createElement('div');
+//     modal.style.setProperty('--type-color', pokemon.backgroundColor);
+//     modal.classList.add('pokemon-modal');
 
-    modal.innerHTML = `
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <!-- Se tiver o GIF, ele será exibido, senão, exibe a imagem padrão -->
-            <img src="${pokemon.gifUrl || pokemon.imageUrl}" alt="${pokemon.name}" class="pokemon-gif">
-            <h3 class="pokemon-name">• ${pokemon.name} •</h3>
-            <div class="pokemon-stats">
-                <div class="stat">
-                    <img src='./img/height.svg'>
-                    <p class="stat-label">Altura</p>
-                    <p class="stat-value">${pokemon.height} M</p>
-                </div>
-                <div class="stat">
-                    <img src='./img/weight.svg'>
-                    <p class="stat-label">Peso</p>
-                    <p class="stat-value">${pokemon.weight} KG</p>
-                </div>
-                <div class="stat">
-                    <p class="stat-label">Tipo</p>
-                    <p class="stat-value">${pokemon.types}</p>
-                </div>
-            </div>
-        </div>
-    `;
+//     modal.innerHTML = `
+//         <div class="modal-content">
+//             <span class="close-modal">&times;</span>
+//             <!-- Se tiver o GIF, ele será exibido, senão, exibe a imagem padrão -->
+//             <img src="${pokemon.gifUrl || pokemon.imageUrl}" alt="${pokemon.name}" class="pokemon-gif">
+//             <h3 class="pokemon-name">• ${pokemon.name} •</h3>
+//             <div class="pokemon-stats">
+//                 <div class="stat">
+//                     <img src='./img/height.svg'>
+//                     <p class="stat-label">Altura</p>
+//                     <p class="stat-value">${pokemon.height} M</p>
+//                 </div>
+//                 <div class="stat">
+//                     <img src='./img/weight.svg'>
+//                     <p class="stat-label">Peso</p>
+//                     <p class="stat-value">${pokemon.weight} KG</p>
+//                 </div>
+//                 <div class="stat">
+//                     <p class="stat-label">Tipo</p>
+//                     <p class="stat-value">${pokemon.types}</p>
+//                 </div>
+//             </div>
+//         </div>
+//     `;
 
-    document.body.appendChild(modal);
+//     document.body.appendChild(modal);
 
-    modal.querySelector('.close-modal').addEventListener('click', () => closeModal(modal));
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) closeModal(modal);
-    });
+//     modal.querySelector('.close-modal').addEventListener('click', () => closeModal(modal));
+//     modal.addEventListener('click', (event) => {
+//         if (event.target === modal) closeModal(modal);
+//     });
 
-    setTimeout(() => {
-        modal.classList.add('show');
-    }, 10);
-};
+//     setTimeout(() => {
+//         modal.classList.add('show');
+//     }, 10);
+// };
 
 // Função para fechar o modal com animação
 const closeModal = (modal) => {
